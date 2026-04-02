@@ -1,0 +1,43 @@
+{
+  "name": "@anvara/backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "prisma": "prisma",
+    "seed": "tsx --env-file=../../.env prisma/seed.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "prettier": "@anvara/prettier-config",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "better-auth": "^1.4.15",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.17.1"
+  },
+  "devDependencies": {
+    "@anvara/config": "workspace:*",
+    "@anvara/eslint-config": "workspace:*",
+    "@anvara/prettier-config": "workspace:*",
+    "@types/express": "^5.0.6",
+    "eslint": "^9.39.2",
+    "prisma": "^7.2.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@anvara/prettier-config",
+  "version": "1.0.0",
+  "private": true,
+  "main": ".prettierrc.json",
+  "type": "module",
+  "dependencies": {
+    "prettier": "^3.8.0"
+  }
+}

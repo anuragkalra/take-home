@@ -1,0 +1,63 @@
+@import 'tailwindcss';
+
+/*
+ * Tailwind CSS v4 - CSS-first configuration
+ * No tailwind.config.js needed! Use CSS custom properties for theming.
+ * Modern 2026 best practices: Oxide engine for faster builds, CSS vars for themes.
+ */
+
+/* Custom theme variables - modify these to customize the marketplace look */
+:root {
+  /* Primary brand colors */
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-primary-light: #818cf8;
+
+  /* Secondary colors */
+  --color-secondary: #10b981;
+  --color-secondary-hover: #059669;
+
+  /* Neutral colors */
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+
+  /* Status colors */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Spacing */
+  --spacing-container: 1rem;
+}
+
+/* Dark mode support - TODO: Implement dark mode toggle */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0f172a;
+    --color-foreground: #f8fafc;
+    --color-muted: #94a3b8;
+    --color-border: #334155;
+  }
+}
+
+/* Base styles */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+/*
+ * HINT: Use Tailwind v4 arbitrary values with CSS vars:
+ * - bg-[--color-primary] for custom backgrounds
+ * - text-[--color-foreground] for custom text colors
+ * - p-[--spacing-container] for custom spacing
+ */

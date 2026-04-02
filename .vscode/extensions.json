@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "EditorConfig.EditorConfig",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "bierner.jsdoc-markdown-highlighting",
+    "christian-kohler.npm-intellisense",
+    "aaron-bond.better-comments",
+    "christian-kohler.path-intellisense",
+    "mikestead.dotenv",
+    "wayou.vscode-todo-highlight",
+    "mquandalle.graphql"
+  ]
+}

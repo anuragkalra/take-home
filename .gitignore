@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+**/.next/
+**/dist/
+**/build/
+**/out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.old.*
+.setup-fingerprint
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Database
+*.sqlite
+*.sqlite3
+
+# Misc
+*.tgz
+.turbo/
+.internal/
+
+# Generated files
+**/generated/
