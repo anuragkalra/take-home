@@ -1,0 +1,54 @@
+You are working on the Anvara Sponsorship Marketplace, a full-stack monorepo take-home assessment project.
+
+## Project Structure
+
+- `apps/frontend/` — Next.js 16, React 19, Tailwind CSS v4, Better Auth
+- `apps/backend/` — Express 5, Prisma 7, PostgreSQL
+- `packages/config/` — Shared TypeScript config
+- `packages/eslint-config/` — Shared ESLint 9 config
+- `packages/prettier-config/` — Shared Prettier config
+
+## Key Commands
+
+- `pnpm dev` — Start all services
+- `pnpm test` — Run Vitest tests
+- `pnpm lint` — Lint all packages
+- `pnpm typecheck` — TypeScript type checking
+- `pnpm --filter @anvara/backend db:generate` — Generate Prisma client
+- `pnpm --filter @anvara/backend db:push` — Push schema to DB
+
+## Code Style
+
+- ESM modules (`"type": "module"`) — use `.js` extensions in backend imports
+- TypeScript strict mode — avoid `any` types, add proper type annotations
+- Prisma generated client at `apps/backend/src/generated/prisma/`
+- Routes export Express Router instances from `apps/backend/src/routes/`
+- Frontend API client in `apps/frontend/lib/api.ts` — fetch-based, calls backend at port 4291
+- Use Tailwind CSS utility classes for styling, no CSS modules
+- Follow existing Prettier config (`@anvara/prettier-config`)
+
+## Database
+
+- PostgreSQL 16 via Docker on port 5498
+- Schema in `apps/backend/prisma/schema.prisma`
+- Core models: Sponsor, Publisher, Campaign, Creative, AdSlot, Placement, Payment
+- Prisma 7 with `@prisma/adapter-pg` driver adapter
+
+## Authentication
+
+- Better Auth configured in `apps/frontend/auth.ts` (server) and `auth-client.ts` (client)
+- Backend auth middleware in `apps/backend/src/auth.ts` (placeholder — needs implementation)
+- Two roles: Sponsor and Publisher
+- Demo accounts: `sponsor@example.com` / `publisher@example.com` (password: `password`)
+
+## Environment
+
+- `.env` at repo root (see `.env.example`)
+- Frontend port: 3847, Backend port: 4291, DB port: 5498
+
+## Important Notes
+
+- This is an assessment project with intentional bugs and TODOs — see `docs/challenges/` for details
+- Check `FIXME`, `TODO`, and `BUG` comments for known issues that candidates should address
+- When fixing TypeScript errors, prefer strict typing over `any`
+- When adding features, follow existing patterns in the codebase
