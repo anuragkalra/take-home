@@ -5,7 +5,7 @@ export default [
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
-      // Frontend-specific rules
+      'no-undef': 'off',
     },
   },
 ];

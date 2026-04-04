@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 // TODO: This should be a marketing landing page, not just a simple welcome screen
 // TODO: Add proper metadata for SEO (title, description, Open Graph)
 // TODO: Add hero section, features, testimonials, etc.

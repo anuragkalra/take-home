@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import './globals.css';
 import { Nav } from './components/nav';
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   // Missing: openGraph, twitter, icons, viewport, etc.
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   // HINT: If using React Query, you would wrap children with QueryClientProvider here
   // See: https://tanstack.com/query/latest/docs/framework/react/guides/advanced-ssr
   return (

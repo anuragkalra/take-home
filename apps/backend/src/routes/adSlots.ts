@@ -64,7 +64,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // BUG: No input validation for basePrice (could be negative or zero)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { name, description, type, dimensions, basePrice, pricingModel, publisherId } = req.body;
+    const { name, description, type, basePrice, publisherId, width, height } = req.body;
 
     if (!name || !type || !basePrice || !publisherId) {
       res.status(400).json({
@@ -82,10 +82,10 @@ router.post('/', async (req: Request, res: Response) => {
         name,
         description,
         type,
-        dimensions, // BUG: This field doesn't exist in schema
         basePrice,
-        pricingModel: pricingModel || 'CPM', // BUG: This field doesn't exist in schema
         publisherId,
+        width,
+        height,
       },
       include: {
         publisher: { select: { id: true, name: true } },
@@ -154,7 +154,7 @@ router.post('/:id/book', async (req: Request, res: Response) => {
 // POST /api/ad-slots/:id/unbook - Reset ad slot to available (for testing)
 router.post('/:id/unbook', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = getParam(req.params.id);
 
     const updatedSlot = await prisma.adSlot.update({
       where: { id },
