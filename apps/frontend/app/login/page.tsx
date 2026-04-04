@@ -1,11 +1,9 @@
 'use client';
 
-import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { authClient } from '@/auth-client';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4291';
+import { getUserRole } from '@/lib/auth-helpers';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,7 +15,7 @@ export default function LoginPage() {
   const email = role === 'sponsor' ? 'sponsor@example.com' : 'publisher@example.com';
   const password = 'password';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -37,8 +35,7 @@ export default function LoginPage() {
           try {
             const userId = ctx.data?.user?.id;
             if (userId) {
-              const roleRes = await fetch(`${API_URL}/api/auth/role/${userId}`);
-              const roleData = await roleRes.json();
+              const roleData = await getUserRole(userId);
               if (roleData.role === 'sponsor') {
                 router.push('/dashboard/sponsor');
               } else if (roleData.role === 'publisher') {
