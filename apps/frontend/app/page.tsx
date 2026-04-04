@@ -14,7 +14,7 @@ export default function Home() {
       <div className="flex gap-4">
         <a
           href="/login"
-          className="rounded-lg bg-[--color-primary] px-6 py-3 text-white hover:bg-[--color-primary-hover]"
+          className="rounded-lg bg-[var(--color-primary)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--color-primary-hover)]"
         >
           Get Started
         </a>

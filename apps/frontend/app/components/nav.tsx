@@ -84,7 +84,7 @@ export function Nav() {
           ) : (
             <Link
               href="/login"
-              className="rounded bg-[--color-primary] px-4 py-2 text-sm text-white hover:bg-[--color-primary-hover]"
+              className="rounded bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-hover)]"
             >
               Login
             </Link>
