@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getCampaigns } from '@/lib/api';
 import { authClient } from '@/auth-client';
+import type { Campaign } from '@/lib/types';
 import { CampaignCard } from './campaign-card';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4291';
@@ -10,7 +11,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4291';
 // FIXME: This component fetches data client-side - should use Server Components
 // See Challenge 2 in CHALLENGES.md for proper implementation
 export function CampaignList() {
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = authClient.useSession();

@@ -9,21 +9,21 @@ type UserRole = 'sponsor' | 'publisher' | null;
 export function Nav() {
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
-  const [role, setRole] = useState<UserRole>(null);
+  const [fetchedRole, setFetchedRole] = useState<UserRole>(null);
+  // Derive role from fetched value; treat as null when not logged in
+  const role: UserRole = user?.id ? fetchedRole : null;
 
   // TODO: Convert to server component and fetch role server-side
   // Fetch user role from backend when user is logged in
   useEffect(() => {
-    if (user?.id) {
-      fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4291'}/api/auth/role/${user.id}`
-      )
-        .then((res) => res.json())
-        .then((data) => setRole(data.role))
-        .catch(() => setRole(null));
-    } else {
-      setRole(null);
-    }
+    if (!user?.id) return;
+
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4291'}/api/auth/role/${user.id}`
+    )
+      .then((res) => res.json())
+      .then((data) => setFetchedRole(data.role as UserRole))
+      .catch(() => setFetchedRole(null));
   }, [user?.id]);
 
   // TODO: Add active link styling using usePathname() from next/navigation
