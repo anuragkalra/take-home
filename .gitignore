@@ -46,3 +46,4 @@ test-results/
 
 # Generated files
 **/generated/
+**/*.tsbuildinfo
