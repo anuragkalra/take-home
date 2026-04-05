@@ -1,18 +1,21 @@
-import { Router, type Request, type Response, type IRouter } from 'express';
+import { Router, type Response, type IRouter } from 'express';
 import { prisma } from '../db.js';
 import { getParam } from '../utils/helpers.js';
+import { authMiddleware, roleMiddleware, type AuthRequest } from '../auth.js';
 
 const router: IRouter = Router();
 
-// GET /api/campaigns - List all campaigns
-router.get('/', async (req: Request, res: Response) => {
+const requireSponsor = [authMiddleware, roleMiddleware(['SPONSOR'])];
+
+// GET /api/campaigns - List caller's campaigns (scoped to their sponsorId)
+router.get('/', ...requireSponsor, async (req: AuthRequest, res: Response) => {
   try {
-    const { status, sponsorId } = req.query;
+    const { status } = req.query;
 
     const campaigns = await prisma.campaign.findMany({
       where: {
+        sponsorId: req.user!.sponsorId,
         ...(status && { status: status as string as 'ACTIVE' | 'PAUSED' | 'COMPLETED' }),
-        ...(sponsorId && { sponsorId: getParam(sponsorId) }),
       },
       include: {
         sponsor: { select: { id: true, name: true, logo: true } },
@@ -28,8 +31,8 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/campaigns/:id - Get single campaign with details
-router.get('/:id', async (req: Request, res: Response) => {
+// GET /api/campaigns/:id - Get single campaign; verifies caller owns it
+router.get('/:id', ...requireSponsor, async (req: AuthRequest, res: Response) => {
   try {
     const id = getParam(req.params.id);
     const campaign = await prisma.campaign.findUnique({
@@ -51,6 +54,11 @@ router.get('/:id', async (req: Request, res: Response) => {
       return;
     }
 
+    if (campaign.sponsorId !== req.user!.sponsorId) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
     res.json(campaign);
   } catch (error) {
     console.error('Error fetching campaign:', error);
@@ -58,25 +66,15 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/campaigns - Create new campaign
-router.post('/', async (req: Request, res: Response) => {
+// POST /api/campaigns - Create new campaign for the caller's sponsor
+router.post('/', ...requireSponsor, async (req: AuthRequest, res: Response) => {
   try {
-    const {
-      name,
-      description,
-      budget,
-      cpmRate,
-      cpcRate,
-      startDate,
-      endDate,
-      targetCategories,
-      targetRegions,
-      sponsorId,
-    } = req.body;
+    const { name, description, budget, cpmRate, cpcRate, startDate, endDate, targetCategories, targetRegions } =
+      req.body;
 
-    if (!name || !budget || !startDate || !endDate || !sponsorId) {
+    if (!name || !budget || !startDate || !endDate) {
       res.status(400).json({
-        error: 'Name, budget, startDate, endDate, and sponsorId are required',
+        error: 'Name, budget, startDate, and endDate are required',
       });
       return;
     }
@@ -92,7 +90,7 @@ router.post('/', async (req: Request, res: Response) => {
         endDate: new Date(endDate),
         targetCategories: targetCategories || [],
         targetRegions: targetRegions || [],
-        sponsorId,
+        sponsorId: req.user!.sponsorId!,
       },
       include: {
         sponsor: { select: { id: true, name: true } },
