@@ -8,16 +8,14 @@ const router: IRouter = Router();
 const requirePublisher = [authMiddleware, roleMiddleware(['PUBLISHER'])];
 const requireSponsor = [authMiddleware, roleMiddleware(['SPONSOR'])];
 
-// GET /api/ad-slots - List ad slots; publishers see only their own, sponsors see all
-router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
+// GET /api/ad-slots - List caller's ad slots (scoped to their publisherId)
+router.get('/', ...requirePublisher, async (req: AuthRequest, res: Response) => {
   try {
     const { type, available } = req.query;
 
     const adSlots = await prisma.adSlot.findMany({
       where: {
-        // Scope to the caller's publisher when they are a publisher; sponsors
-        // see all slots so they can browse the marketplace
-        ...(req.user!.publisherId && { publisherId: req.user!.publisherId }),
+        publisherId: req.user!.publisherId,
         ...(type && {
           type: type as string as 'DISPLAY' | 'VIDEO' | 'NATIVE' | 'NEWSLETTER' | 'PODCAST',
         }),
@@ -37,8 +35,8 @@ router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /api/ad-slots/:id - Get single ad slot; publishers may only see their own
-router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+// GET /api/ad-slots/:id - Get single ad slot; verifies caller owns it
+router.get('/:id', ...requirePublisher, async (req: AuthRequest, res: Response) => {
   try {
     const id = getParam(req.params.id);
     const adSlot = await prisma.adSlot.findUnique({
@@ -58,8 +56,7 @@ router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    // Publishers may only view their own slots; sponsors may view any slot
-    if (req.user!.publisherId && adSlot.publisherId !== req.user!.publisherId) {
+    if (adSlot.publisherId !== req.user!.publisherId) {
       res.status(403).json({ error: 'Forbidden' });
       return;
     }
@@ -192,7 +189,78 @@ router.post('/:id/unbook', authMiddleware, async (req: AuthRequest, res: Respons
   }
 });
 
-// TODO: Add PUT /api/ad-slots/:id endpoint
-// TODO: Add DELETE /api/ad-slots/:id endpoint
+// PUT /api/ad-slots/:id - Update ad slot details for the caller's publisher
+router.put('/:id', ...requirePublisher, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = getParam(req.params.id);
+    const existingAdSlot = await prisma.adSlot.findUnique({
+      where: { id },
+      select: { id: true, publisherId: true },
+    });
+
+    if (!existingAdSlot) {
+      res.status(404).json({ error: 'Ad slot not found' });
+      return;
+    }
+
+    if (existingAdSlot.publisherId !== req.user!.publisherId) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
+    const { name, description, type, position, width, height, basePrice, cpmFloor, isAvailable } = req.body;
+
+    const adSlot = await prisma.adSlot.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(type !== undefined && { type }),
+        ...(position !== undefined && { position }),
+        ...(width !== undefined && { width }),
+        ...(height !== undefined && { height }),
+        ...(basePrice !== undefined && { basePrice }),
+        ...(cpmFloor !== undefined && { cpmFloor }),
+        ...(isAvailable !== undefined && { isAvailable }),
+      },
+      include: {
+        publisher: { select: { id: true, name: true, category: true, monthlyViews: true } },
+        _count: { select: { placements: true } },
+      },
+    });
+
+    res.json(adSlot);
+  } catch (error) {
+    console.error('Error updating ad slot:', error);
+    res.status(500).json({ error: 'Failed to update ad slot' });
+  }
+});
+
+// DELETE /api/ad-slots/:id - Delete ad slot for the caller's publisher
+router.delete('/:id', ...requirePublisher, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = getParam(req.params.id);
+    const existingAdSlot = await prisma.adSlot.findUnique({
+      where: { id },
+      select: { id: true, publisherId: true },
+    });
+
+    if (!existingAdSlot) {
+      res.status(404).json({ error: 'Ad slot not found' });
+      return;
+    }
+
+    if (existingAdSlot.publisherId !== req.user!.publisherId) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
+    await prisma.adSlot.delete({ where: { id } });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting ad slot:', error);
+    res.status(500).json({ error: 'Failed to delete ad slot' });
+  }
+});
 
 export default router;

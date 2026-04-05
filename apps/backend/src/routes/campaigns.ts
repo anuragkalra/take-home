@@ -104,7 +104,80 @@ router.post('/', ...requireSponsor, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// TODO: Add PUT /api/campaigns/:id endpoint
-// Update campaign details (name, budget, dates, status, etc.)
+// PUT /api/campaigns/:id - Update campaign details for the caller's sponsor
+router.put('/:id', ...requireSponsor, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = getParam(req.params.id);
+    const existingCampaign = await prisma.campaign.findUnique({
+      where: { id },
+      select: { id: true, sponsorId: true },
+    });
+
+    if (!existingCampaign) {
+      res.status(404).json({ error: 'Campaign not found' });
+      return;
+    }
+
+    if (existingCampaign.sponsorId !== req.user!.sponsorId) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
+    const { name, description, budget, cpmRate, cpcRate, startDate, endDate, targetCategories, targetRegions, status } =
+      req.body;
+
+    const campaign = await prisma.campaign.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(budget !== undefined && { budget }),
+        ...(cpmRate !== undefined && { cpmRate }),
+        ...(cpcRate !== undefined && { cpcRate }),
+        ...(startDate !== undefined && { startDate: new Date(startDate) }),
+        ...(endDate !== undefined && { endDate: new Date(endDate) }),
+        ...(targetCategories !== undefined && { targetCategories }),
+        ...(targetRegions !== undefined && { targetRegions }),
+        ...(status !== undefined && { status }),
+      },
+      include: {
+        sponsor: { select: { id: true, name: true, logo: true } },
+        _count: { select: { creatives: true, placements: true } },
+      },
+    });
+
+    res.json(campaign);
+  } catch (error) {
+    console.error('Error updating campaign:', error);
+    res.status(500).json({ error: 'Failed to update campaign' });
+  }
+});
+
+// DELETE /api/campaigns/:id - Delete campaign for the caller's sponsor
+router.delete('/:id', ...requireSponsor, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = getParam(req.params.id);
+    const existingCampaign = await prisma.campaign.findUnique({
+      where: { id },
+      select: { id: true, sponsorId: true },
+    });
+
+    if (!existingCampaign) {
+      res.status(404).json({ error: 'Campaign not found' });
+      return;
+    }
+
+    if (existingCampaign.sponsorId !== req.user!.sponsorId) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
+    await prisma.campaign.delete({ where: { id } });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting campaign:', error);
+    res.status(500).json({ error: 'Failed to delete campaign' });
+  }
+});
 
 export default router;

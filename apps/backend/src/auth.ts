@@ -55,6 +55,11 @@ export async function authMiddleware(
       prisma.publisher.findUnique({ where: { userId }, select: { id: true } }),
     ]);
 
+    if (!sponsor && !publisher) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+
     req.user = {
       id: userId,
       email: session.user.email,
