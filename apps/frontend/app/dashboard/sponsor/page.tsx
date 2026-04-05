@@ -24,7 +24,7 @@ export default async function SponsorDashboard() {
   // fetch. The backend scopes campaigns to the caller's sponsorId via the session,
   // so no sponsorId query param is needed.
   const cookieHeader = requestHeaders.get('cookie') ?? '';
-  const campaigns = await getCampaigns({
+  const campaigns = await getCampaigns(undefined, {
     cache: 'no-store',
     headers: { cookie: cookieHeader },
   });

@@ -12,9 +12,10 @@ import {
 
 const initialState: PublisherActionState = {};
 const adSlotTypes = ['DISPLAY', 'VIDEO', 'NATIVE', 'NEWSLETTER', 'PODCAST'] as const;
+const ITEMS_PER_PAGE = 10;
 
 const inputClassName =
-  'w-full rounded-md border border-[--color-border] bg-white px-3 py-2 text-sm outline-none transition focus:border-[--color-primary]';
+  'w-full rounded-md border border-[--color-border] bg-white px-3 py-2 text-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200';
 const labelClassName = 'space-y-1 text-sm';
 const errorClassName = 'text-xs text-red-600';
 
@@ -289,10 +290,66 @@ function AdSlotItem({
   );
 }
 
+function Pagination({
+  page,
+  totalItems,
+  onPrevious,
+  onNext,
+}: {
+  page: number;
+  totalItems: number;
+  onPrevious: () => void;
+  onNext: () => void;
+}) {
+  const start = (page - 1) * ITEMS_PER_PAGE + 1;
+  const end = Math.min(page * ITEMS_PER_PAGE, totalItems);
+  const hasPrevious = page > 1;
+  const hasNext = end < totalItems;
+  const buttonClassName =
+    'flex h-10 w-10 items-center justify-center rounded-full text-3xl leading-none text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent';
+
+  if (totalItems <= ITEMS_PER_PAGE) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-end gap-4 pt-2 text-sm text-slate-500">
+      <span>{start}-{end} of {totalItems}</span>
+      <button
+        type="button"
+        onClick={onPrevious}
+        disabled={!hasPrevious}
+        aria-label="Previous page"
+        className={buttonClassName}
+      >
+        ‹
+      </button>
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={!hasNext}
+        aria-label="Next page"
+        className={buttonClassName}
+      >
+        ›
+      </button>
+    </div>
+  );
+}
+
 export function PublisherDashboardClient({ adSlots }: { adSlots: AdSlot[] }) {
   const [isCreating, setIsCreating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [createFormKey, setCreateFormKey] = useState(0);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(adSlots.length / ITEMS_PER_PAGE));
+  const paginatedAdSlots = adSlots.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   return (
     <div className="space-y-6">
@@ -328,10 +385,18 @@ export function PublisherDashboardClient({ adSlots }: { adSlots: AdSlot[] }) {
           No ad slots yet. Create your first ad slot to start earning.
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {adSlots.map((adSlot) => (
-            <AdSlotItem key={adSlot.id} adSlot={adSlot} onSuccess={setFeedback} />
-          ))}
+        <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            {paginatedAdSlots.map((adSlot) => (
+              <AdSlotItem key={adSlot.id} adSlot={adSlot} onSuccess={setFeedback} />
+            ))}
+          </div>
+          <Pagination
+            page={page}
+            totalItems={adSlots.length}
+            onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+            onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+          />
         </div>
       )}
     </div>
