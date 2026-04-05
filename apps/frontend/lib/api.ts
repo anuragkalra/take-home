@@ -1,11 +1,3 @@
-// Simple API client
-// FIXME: This client has no error response parsing - when API returns { error: "..." },
-// we should extract and throw that message instead of generic "API request failed"
-
-// TODO: Add authentication token to requests
-// Hint: Include credentials: 'include' for cookie-based auth, or
-// add Authorization header for token-based auth
-
 import type { AdSlot, Campaign, Placement } from '@/lib/types';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4291';
@@ -107,8 +99,7 @@ export async function api<T>(endpoint: string, options?: RequestInit): Promise<T
 }
 
 // Campaigns
-export const getCampaigns = (sponsorId?: string, init?: RequestInit) =>
-  api<Campaign[]>(sponsorId ? `/api/campaigns?sponsorId=${sponsorId}` : '/api/campaigns', init);
+export const getCampaigns = (init?: RequestInit) => api<Campaign[]>('/api/campaigns', init);
 export const getCampaign = (id: string) => api<Campaign>(`/api/campaigns/${id}`);
 export const createCampaign = (data: CreateCampaignInput) =>
   api('/api/campaigns', { method: 'POST', body: JSON.stringify(data) });
@@ -118,8 +109,7 @@ export const deleteCampaign = (id: string) =>
   api<void>(`/api/campaigns/${id}`, { method: 'DELETE' });
 
 // Ad Slots
-export const getAdSlots = (publisherId?: string) =>
-  api<AdSlot[]>(publisherId ? `/api/ad-slots?publisherId=${publisherId}` : '/api/ad-slots');
+export const getAdSlots = () => api<AdSlot[]>('/api/ad-slots');
 export const getAdSlot = (id: string) => api<AdSlot>(`/api/ad-slots/${id}`);
 export const createAdSlot = (data: CreateAdSlotInput) =>
   api('/api/ad-slots', { method: 'POST', body: JSON.stringify(data) });

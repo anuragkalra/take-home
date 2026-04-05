@@ -114,6 +114,21 @@ function parseOptionalStringArray(value: unknown, field: string): { value?: stri
   return { value: value.map((item) => item.trim()) };
 }
 
+function parseCampaignStatusFilter(value: unknown): {
+  value?: (typeof CAMPAIGN_STATUSES)[number];
+  error?: string;
+} {
+  if (value === undefined) {
+    return {};
+  }
+
+  if (typeof value !== 'string' || !CAMPAIGN_STATUSES.includes(value as (typeof CAMPAIGN_STATUSES)[number])) {
+    return { error: `status must be one of: ${CAMPAIGN_STATUSES.join(', ')}` };
+  }
+
+  return { value: value as (typeof CAMPAIGN_STATUSES)[number] };
+}
+
 function validateCampaignPayload(body: unknown, partial = false): { data?: CampaignPayload; error?: string } {
   if (!isPlainObject(body)) {
     return { error: 'Request body must be a JSON object' };
@@ -200,12 +215,16 @@ function validateCampaignPayload(body: unknown, partial = false): { data?: Campa
 // GET /api/campaigns - List caller's campaigns (scoped to their sponsorId)
 router.get('/', ...requireSponsor, async (req: AuthRequest, res: Response) => {
   try {
-    const { status } = req.query;
+    const statusFilter = parseCampaignStatusFilter(req.query.status);
+    if (statusFilter.error) {
+      res.status(400).json({ error: statusFilter.error });
+      return;
+    }
 
     const campaigns = await prisma.campaign.findMany({
       where: {
         sponsorId: req.user!.sponsorId,
-        ...(status && { status: status as string as 'ACTIVE' | 'PAUSED' | 'COMPLETED' }),
+        ...(statusFilter.value && { status: statusFilter.value }),
       },
       include: {
         sponsor: { select: { id: true, name: true, logo: true } },
@@ -297,11 +316,22 @@ router.put('/:id', ...requireSponsor, async (req: AuthRequest, res: Response) =>
 
     const existingCampaign = await prisma.campaign.findFirst({
       where: { id, sponsorId: req.user!.sponsorId! },
-      select: { id: true, sponsorId: true },
+      select: { id: true, sponsorId: true, startDate: true, endDate: true },
     });
 
     if (!existingCampaign) {
       res.status(404).json({ error: 'Campaign not found' });
+      return;
+    }
+
+    const nextStartDate = validated.data.startDate ?? undefined;
+    const nextEndDate = validated.data.endDate ?? undefined;
+
+    if (
+      (nextStartDate && existingCampaign.endDate && nextStartDate > existingCampaign.endDate) ||
+      (nextEndDate && existingCampaign.startDate && existingCampaign.startDate > nextEndDate)
+    ) {
+      res.status(400).json({ error: 'startDate must be before or equal to endDate' });
       return;
     }
 
