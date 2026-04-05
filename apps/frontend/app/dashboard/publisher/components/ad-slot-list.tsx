@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { getAdSlots } from '@/lib/api';
 import { authClient } from '@/auth-client';
-import { getUserRole } from '@/lib/auth-helpers';
 import type { AdSlot } from '@/lib/types';
 import { AdSlotCard } from './ad-slot-card';
 
@@ -18,14 +17,8 @@ export function AdSlotList() {
       if (!session?.user?.id) return;
 
       try {
-        const roleData = await getUserRole(session.user.id);
-
-        if (roleData.publisherId) {
-          const data = await getAdSlots(roleData.publisherId);
-          setAdSlots(data);
-        } else {
-          setAdSlots([]);
-        }
+        const data = await getAdSlots();
+        setAdSlots(data);
       } catch {
         setError('Failed to load ad slots');
       } finally {

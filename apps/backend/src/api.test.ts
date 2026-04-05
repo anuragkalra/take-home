@@ -551,6 +551,39 @@ describe('Campaign API', () => {
     expect(updated.budget).toBe(7500);
   });
 
+  it('returns 400 when a partial campaign update would create an invalid date range', async () => {
+    const response = await request(
+      campaignsRoutes,
+      '/campaign-1',
+      {
+        method: 'PUT',
+        body: {
+          startDate: '2026-05-15T00:00:00.000Z',
+        },
+      },
+      sponsorUser,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({ error: 'startDate must be before or equal to endDate' });
+  });
+
+  it('returns 400 for an invalid campaign status filter', async () => {
+    const response = await request(
+      campaignsRoutes,
+      '/',
+      {
+        query: { status: 'NOT_A_REAL_STATUS' },
+      },
+      sponsorUser,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: 'status must be one of: DRAFT, PENDING_REVIEW, APPROVED, ACTIVE, PAUSED, COMPLETED, CANCELLED',
+    });
+  });
+
   it('deletes an existing campaign', async () => {
     const response = await request(campaignsRoutes, '/campaign-1', { method: 'DELETE' }, sponsorUser);
 
@@ -636,6 +669,36 @@ describe('Ad Slots API', () => {
     const updated = response.body as AdSlotRecord;
     expect(updated.basePrice).toBe(325);
     expect(updated.isAvailable).toBe(false);
+  });
+
+  it('returns 400 for an invalid ad-slot type filter', async () => {
+    const response = await request(
+      adSlotsRoutes,
+      '/',
+      {
+        query: { type: 'SIDEBAR' },
+      },
+      sponsorUser,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: 'type must be one of: DISPLAY, VIDEO, NATIVE, NEWSLETTER, PODCAST',
+    });
+  });
+
+  it('returns 400 for an invalid ad-slot availability filter', async () => {
+    const response = await request(
+      adSlotsRoutes,
+      '/',
+      {
+        query: { available: 'sometimes' },
+      },
+      sponsorUser,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({ error: 'available must be "true" or "false"' });
   });
 
   it('deletes an existing ad slot', async () => {

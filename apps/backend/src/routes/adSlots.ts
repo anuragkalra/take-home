@@ -76,6 +76,32 @@ function parseNumber(
   return { value: parsed };
 }
 
+function parseAdSlotTypeFilter(value: unknown): {
+  value?: (typeof AD_SLOT_TYPES)[number];
+  error?: string;
+} {
+  if (value === undefined) {
+    return {};
+  }
+
+  if (typeof value !== 'string' || !AD_SLOT_TYPES.includes(value as (typeof AD_SLOT_TYPES)[number])) {
+    return { error: `type must be one of: ${AD_SLOT_TYPES.join(', ')}` };
+  }
+
+  return { value: value as (typeof AD_SLOT_TYPES)[number] };
+}
+
+function parseAvailableFilter(value: unknown): { value?: boolean; error?: string } {
+  if (value === undefined) {
+    return {};
+  }
+
+  if (value === 'true') return { value: true };
+  if (value === 'false') return { value: false };
+
+  return { error: 'available must be "true" or "false"' };
+}
+
 function validateAdSlotPayload(body: unknown, partial = false): { data?: AdSlotPayload; error?: string } {
   if (!isPlainObject(body)) {
     return { error: 'Request body must be a JSON object' };
@@ -140,15 +166,23 @@ function validateAdSlotPayload(body: unknown, partial = false): { data?: AdSlotP
 // GET /api/ad-slots - Publishers see their own slots; sponsors can browse all
 router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const { type, available } = req.query;
+    const typeFilter = parseAdSlotTypeFilter(req.query.type);
+    if (typeFilter.error) {
+      res.status(400).json({ error: typeFilter.error });
+      return;
+    }
+
+    const availableFilter = parseAvailableFilter(req.query.available);
+    if (availableFilter.error) {
+      res.status(400).json({ error: availableFilter.error });
+      return;
+    }
 
     const adSlots = await prisma.adSlot.findMany({
       where: {
         ...(req.user!.publisherId && { publisherId: req.user!.publisherId }),
-        ...(type && {
-          type: type as string as 'DISPLAY' | 'VIDEO' | 'NATIVE' | 'NEWSLETTER' | 'PODCAST',
-        }),
-        ...(available === 'true' && { isAvailable: true }),
+        ...(typeFilter.value && { type: typeFilter.value }),
+        ...(availableFilter.value !== undefined && { isAvailable: availableFilter.value }),
       },
       include: {
         publisher: { select: { id: true, name: true, category: true, monthlyViews: true } },
