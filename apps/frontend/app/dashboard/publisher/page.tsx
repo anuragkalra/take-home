@@ -1,12 +1,15 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
+import { API_URL } from '@/lib/api';
 import { getUserRole } from '@/lib/auth-helpers';
-import { AdSlotList } from './components/ad-slot-list';
+import type { AdSlot } from '@/lib/types';
+import { PublisherDashboardClient } from './components/publisher-dashboard-client';
 
 export default async function PublisherDashboard() {
+  const requestHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders,
   });
 
   if (!session?.user) {
@@ -19,14 +22,17 @@ export default async function PublisherDashboard() {
     redirect('/');
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Ad Slots</h1>
-        {/* TODO: Add CreateAdSlotButton here */}
-      </div>
+  const cookieHeader = requestHeaders.get('cookie') ?? '';
+  const response = await fetch(`${API_URL}/api/ad-slots`, {
+    cache: 'no-store',
+    headers: { cookie: cookieHeader },
+  });
 
-      <AdSlotList />
-    </div>
-  );
+  if (!response.ok) {
+    throw new Error('Failed to load ad slots');
+  }
+
+  const adSlots = (await response.json()) as AdSlot[];
+
+  return <PublisherDashboardClient adSlots={adSlots} />;
 }
