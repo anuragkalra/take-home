@@ -33,7 +33,7 @@ function SubmitButton({
   const className =
     variant === 'danger'
       ? 'rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70'
-      : 'rounded-md bg-[--color-primary] px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70';
+      : 'rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70';
 
   return (
     <button type="submit" disabled={pending} className={className}>
@@ -308,6 +308,7 @@ function CampaignItem({
 export function SponsorDashboardClient({ campaigns }: { campaigns: Campaign[] }) {
   const [isCreating, setIsCreating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [createFormKey, setCreateFormKey] = useState(0);
 
   return (
     <div className="space-y-6">
@@ -316,9 +317,9 @@ export function SponsorDashboardClient({ campaigns }: { campaigns: Campaign[] })
         <button
           type="button"
           onClick={() => setIsCreating((value) => !value)}
-          className="rounded-md bg-[--color-primary] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="rounded-md bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
         >
-          {isCreating ? 'Close Form' : 'Create Campaign'}
+          {isCreating ? 'Close Create Form' : '+ Create New Campaign'}
         </button>
       </div>
 
@@ -329,9 +330,13 @@ export function SponsorDashboardClient({ campaigns }: { campaigns: Campaign[] })
       ) : null}
 
       <CreateCampaignForm
+        key={createFormKey}
         open={isCreating}
         onClose={() => setIsCreating(false)}
-        onSuccess={() => setFeedback('Campaign created.')}
+        onSuccess={() => {
+          setFeedback('Campaign created.');
+          setCreateFormKey((value) => value + 1);
+        }}
       />
 
       {campaigns.length === 0 ? (

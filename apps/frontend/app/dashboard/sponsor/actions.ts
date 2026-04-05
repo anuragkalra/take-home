@@ -12,13 +12,16 @@ export type SponsorActionState = {
 
 async function getSessionCookieHeader() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('better-auth-session');
+  const cookieHeader = cookieStore
+    .getAll()
+    .map(({ name, value }) => `${name}=${value}`)
+    .join('; ');
 
-  if (!sessionCookie?.value) {
+  if (!cookieHeader) {
     throw new Error('You must be logged in to manage campaigns');
   }
 
-  return `better-auth-session=${sessionCookie.value}`;
+  return cookieHeader;
 }
 
 async function parseError(response: Response) {
