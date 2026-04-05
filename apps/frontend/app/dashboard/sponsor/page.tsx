@@ -6,9 +6,9 @@ import { getUserRole } from '@/lib/auth-helpers';
 import { CampaignList } from './components/campaign-list';
 
 export default async function SponsorDashboard() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const requestHeaders = await headers();
+
+  const session = await auth.api.getSession({ headers: requestHeaders });
 
   if (!session?.user) {
     redirect('/login');
@@ -20,9 +20,14 @@ export default async function SponsorDashboard() {
     redirect('/');
   }
 
-  const campaigns = roleData.sponsorId
-    ? await getCampaigns(roleData.sponsorId, { cache: 'no-store' })
-    : [];
+  // Forward the session cookie so the backend can authenticate the server-side
+  // fetch. The backend scopes campaigns to the caller's sponsorId via the session,
+  // so no sponsorId query param is needed.
+  const cookieHeader = requestHeaders.get('cookie') ?? '';
+  const campaigns = await getCampaigns(undefined, {
+    cache: 'no-store',
+    headers: { cookie: cookieHeader },
+  });
 
   return (
     <div className="space-y-6">

@@ -63,6 +63,9 @@ importers:
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
       eslint:
         specifier: ^9.39.2
         version: 9.39.2(jiti@2.6.1)
