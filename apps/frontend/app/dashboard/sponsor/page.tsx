@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { getCampaigns } from '@/lib/api';
 import { getUserRole } from '@/lib/auth-helpers';
-import { CampaignList } from './components/campaign-list';
+import { SponsorDashboardClient } from './components/sponsor-dashboard-client';
 
 export default async function SponsorDashboard() {
   const requestHeaders = await headers();
@@ -29,14 +29,5 @@ export default async function SponsorDashboard() {
     headers: { cookie: cookieHeader },
   });
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Campaigns</h1>
-        {/* TODO: Add CreateCampaignButton here */}
-      </div>
-
-      <CampaignList campaigns={campaigns} />
-    </div>
-  );
+  return <SponsorDashboardClient campaigns={campaigns} />;
 }
