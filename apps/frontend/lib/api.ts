@@ -4,6 +4,11 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4291
 
 type JsonObject = Record<string, unknown>;
 
+export interface NewsletterSubscribeResponse {
+  success: true;
+  message: string;
+}
+
 export interface CreateCampaignInput {
   name: string;
   description?: string;
@@ -125,3 +130,10 @@ export const createPlacement = (data: CreatePlacementInput) =>
 
 // Dashboard
 export const getStats = () => api<JsonObject>('/api/dashboard/stats');
+
+// Newsletter
+export const subscribeToNewsletter = (email: string) =>
+  api<NewsletterSubscribeResponse>('/api/newsletter/subscribe', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
