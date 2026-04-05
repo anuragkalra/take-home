@@ -216,12 +216,17 @@ function DeleteAdSlotForm({
 
 function AdSlotItem({
   adSlot,
+  isEditing,
+  onEditOpen,
+  onEditClose,
   onSuccess,
 }: {
   adSlot: AdSlot;
+  isEditing: boolean;
+  onEditOpen: () => void;
+  onEditClose: () => void;
   onSuccess: (message: string) => void;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
   const [state, formAction] = useFormState(updateAdSlot, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -231,9 +236,9 @@ function AdSlotItem({
     }
 
     formRef.current?.reset();
-    setIsEditing(false);
+    onEditClose();
     onSuccess('Ad slot updated.');
-  }, [onSuccess, state.success]);
+  }, [onEditClose, onSuccess, state.success]);
 
   return (
     <article className="space-y-4 rounded-xl border border-[--color-border] bg-white p-5 shadow-sm">
@@ -266,7 +271,7 @@ function AdSlotItem({
             <SubmitButton idleText="Save Changes" pendingText="Saving..." />
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
+              onClick={onEditClose}
               className="rounded-md border border-[--color-border] px-3 py-2 text-sm text-[--color-muted] hover:text-[--color-foreground]"
             >
               Cancel
@@ -277,7 +282,7 @@ function AdSlotItem({
         <div className="flex items-center gap-3 border-t border-[--color-border] pt-4">
           <button
             type="button"
-            onClick={() => setIsEditing(true)}
+            onClick={onEditOpen}
             className="rounded-md border border-[--color-border] px-3 py-2 text-sm hover:bg-gray-50"
           >
             Edit
@@ -292,6 +297,7 @@ function AdSlotItem({
 export function PublisherDashboardClient({ adSlots }: { adSlots: AdSlot[] }) {
   const [isCreating, setIsCreating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -325,7 +331,14 @@ export function PublisherDashboardClient({ adSlots }: { adSlots: AdSlot[] }) {
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {adSlots.map((adSlot) => (
-            <AdSlotItem key={adSlot.id} adSlot={adSlot} onSuccess={setFeedback} />
+            <AdSlotItem
+              key={adSlot.id}
+              adSlot={adSlot}
+              isEditing={editingId === adSlot.id}
+              onEditOpen={() => setEditingId(adSlot.id)}
+              onEditClose={() => setEditingId(null)}
+              onSuccess={setFeedback}
+            />
           ))}
         </div>
       )}

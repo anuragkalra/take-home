@@ -214,12 +214,17 @@ function DeleteCampaignForm({
 
 function CampaignItem({
   campaign,
+  isEditing,
+  onEditOpen,
+  onEditClose,
   onSuccess,
 }: {
   campaign: Campaign;
+  isEditing: boolean;
+  onEditOpen: () => void;
+  onEditClose: () => void;
   onSuccess: (message: string) => void;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
   const [state, formAction] = useFormState(updateCampaign, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const progress =
@@ -233,9 +238,9 @@ function CampaignItem({
     }
 
     formRef.current?.reset();
-    setIsEditing(false);
+    onEditClose();
     onSuccess('Campaign updated.');
-  }, [onSuccess, state.success]);
+  }, [onEditClose, onSuccess, state.success]);
 
   return (
     <article className="space-y-4 rounded-xl border border-[--color-border] bg-white p-5 shadow-sm">
@@ -278,7 +283,7 @@ function CampaignItem({
             <SubmitButton idleText="Save Changes" pendingText="Saving..." />
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
+              onClick={onEditClose}
               className="rounded-md border border-[--color-border] px-3 py-2 text-sm text-[--color-muted] hover:text-[--color-foreground]"
             >
               Cancel
@@ -289,7 +294,7 @@ function CampaignItem({
         <div className="flex items-center gap-3 border-t border-[--color-border] pt-4">
           <button
             type="button"
-            onClick={() => setIsEditing(true)}
+            onClick={onEditOpen}
             className="rounded-md border border-[--color-border] px-3 py-2 text-sm hover:bg-gray-50"
           >
             Edit
@@ -308,6 +313,7 @@ function CampaignItem({
 export function SponsorDashboardClient({ campaigns }: { campaigns: Campaign[] }) {
   const [isCreating, setIsCreating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -341,7 +347,14 @@ export function SponsorDashboardClient({ campaigns }: { campaigns: Campaign[] })
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {campaigns.map((campaign) => (
-            <CampaignItem key={campaign.id} campaign={campaign} onSuccess={setFeedback} />
+            <CampaignItem
+              key={campaign.id}
+              campaign={campaign}
+              isEditing={editingId === campaign.id}
+              onEditOpen={() => setEditingId(campaign.id)}
+              onEditClose={() => setEditingId(null)}
+              onSuccess={setFeedback}
+            />
           ))}
         </div>
       )}

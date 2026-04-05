@@ -111,7 +111,7 @@ function validateAdSlotForm(formData: FormData) {
 }
 
 export async function createAdSlot(
-  _prevState: any,
+  _prevState: PublisherActionState,
   formData: FormData,
 ): Promise<PublisherActionState> {
   const validation = validateAdSlotForm(formData);
@@ -145,7 +145,7 @@ export async function createAdSlot(
 }
 
 export async function updateAdSlot(
-  _prevState: any,
+  _prevState: PublisherActionState,
   formData: FormData,
 ): Promise<PublisherActionState> {
   const id = parseRequiredString(formData, 'id', 'Ad slot', {});
@@ -184,7 +184,7 @@ export async function updateAdSlot(
 }
 
 export async function deleteAdSlot(
-  _prevState: any,
+  _prevState: PublisherActionState,
   formData: FormData,
 ): Promise<PublisherActionState> {
   const id = formData.get('id');

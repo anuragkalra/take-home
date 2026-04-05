@@ -116,7 +116,7 @@ function validateCampaignForm(formData: FormData) {
 }
 
 export async function createCampaign(
-  _prevState: any,
+  _prevState: SponsorActionState,
   formData: FormData,
 ): Promise<SponsorActionState> {
   const validation = validateCampaignForm(formData);
@@ -150,7 +150,7 @@ export async function createCampaign(
 }
 
 export async function updateCampaign(
-  _prevState: any,
+  _prevState: SponsorActionState,
   formData: FormData,
 ): Promise<SponsorActionState> {
   const id = formData.get('id');
@@ -189,7 +189,7 @@ export async function updateCampaign(
 }
 
 export async function deleteCampaign(
-  _prevState: any,
+  _prevState: SponsorActionState,
   formData: FormData,
 ): Promise<SponsorActionState> {
   const id = formData.get('id');
