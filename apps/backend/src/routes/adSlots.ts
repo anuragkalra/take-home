@@ -8,14 +8,14 @@ const router: IRouter = Router();
 const requirePublisher = [authMiddleware, roleMiddleware(['PUBLISHER'])];
 const requireSponsor = [authMiddleware, roleMiddleware(['SPONSOR'])];
 
-// GET /api/ad-slots - List caller's ad slots (scoped to their publisherId)
-router.get('/', ...requirePublisher, async (req: AuthRequest, res: Response) => {
+// GET /api/ad-slots - Publishers see their own slots; sponsors can browse all
+router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { type, available } = req.query;
 
     const adSlots = await prisma.adSlot.findMany({
       where: {
-        publisherId: req.user!.publisherId,
+        ...(req.user!.publisherId && { publisherId: req.user!.publisherId }),
         ...(type && {
           type: type as string as 'DISPLAY' | 'VIDEO' | 'NATIVE' | 'NEWSLETTER' | 'PODCAST',
         }),
@@ -35,8 +35,8 @@ router.get('/', ...requirePublisher, async (req: AuthRequest, res: Response) => 
   }
 });
 
-// GET /api/ad-slots/:id - Get single ad slot; verifies caller owns it
-router.get('/:id', ...requirePublisher, async (req: AuthRequest, res: Response) => {
+// GET /api/ad-slots/:id - Publishers may only view their own slots; sponsors may browse any slot
+router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const id = getParam(req.params.id);
     const adSlot = await prisma.adSlot.findUnique({
@@ -56,7 +56,7 @@ router.get('/:id', ...requirePublisher, async (req: AuthRequest, res: Response) 
       return;
     }
 
-    if (adSlot.publisherId !== req.user!.publisherId) {
+    if (req.user!.publisherId && adSlot.publisherId !== req.user!.publisherId) {
       res.status(403).json({ error: 'Forbidden' });
       return;
     }
