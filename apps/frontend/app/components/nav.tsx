@@ -16,6 +16,7 @@ export function Nav() {
   // Fetch user role from backend when user is logged in
   useEffect(() => {
     if (!user?.id) {
+      setRole(null);
       return;
     }
 
@@ -35,12 +36,14 @@ export function Nav() {
         </Link>
 
         <div className="flex items-center gap-6">
-          <Link
-            href="/marketplace"
-            className="text-[--color-muted] hover:text-[--color-foreground]"
-          >
-            Marketplace
-          </Link>
+          {user && (
+            <Link
+              href="/marketplace"
+              className="text-[--color-muted] hover:text-[--color-foreground]"
+            >
+              Marketplace
+            </Link>
+          )}
 
           {user && role === 'sponsor' && (
             <Link
