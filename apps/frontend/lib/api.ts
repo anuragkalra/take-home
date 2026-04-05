@@ -18,7 +18,23 @@ export interface CreateCampaignInput {
   budget: number;
   startDate: string;
   endDate: string;
-  sponsorId: string;
+  cpmRate?: number | null;
+  cpcRate?: number | null;
+  targetCategories?: string[];
+  targetRegions?: string[];
+}
+
+export interface UpdateCampaignInput {
+  name?: string;
+  description?: string | null;
+  budget?: number;
+  startDate?: string;
+  endDate?: string;
+  cpmRate?: number | null;
+  cpcRate?: number | null;
+  status?: Campaign['status'];
+  targetCategories?: string[];
+  targetRegions?: string[];
 }
 
 export interface CreateAdSlotInput {
@@ -26,9 +42,23 @@ export interface CreateAdSlotInput {
   description?: string;
   type: AdSlot['type'];
   basePrice: number;
-  publisherId: string;
+  position?: string | null;
   width?: number;
   height?: number;
+  cpmFloor?: number | null;
+  isAvailable?: boolean;
+}
+
+export interface UpdateAdSlotInput {
+  name?: string;
+  description?: string | null;
+  type?: AdSlot['type'];
+  position?: string | null;
+  width?: number | null;
+  height?: number | null;
+  basePrice?: number;
+  cpmFloor?: number | null;
+  isAvailable?: boolean;
 }
 
 export interface CreatePlacementInput {
@@ -48,8 +78,32 @@ export async function api<T>(endpoint: string, options?: RequestInit): Promise<T
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     ...options,
   });
-  if (!res.ok) throw new Error('API request failed');
-  return res.json();
+
+  if (!res.ok) {
+    let message = 'API request failed';
+
+    try {
+      const errorBody = (await res.json()) as { error?: string };
+      if (typeof errorBody.error === 'string' && errorBody.error.trim() !== '') {
+        message = errorBody.error;
+      }
+    } catch {
+      // Ignore non-JSON error bodies and fall back to the generic message.
+    }
+
+    throw new Error(message);
+  }
+
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  const contentType = res.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    return undefined as T;
+  }
+
+  return res.json() as Promise<T>;
 }
 
 // Campaigns
@@ -58,7 +112,10 @@ export const getCampaigns = (sponsorId?: string, init?: RequestInit) =>
 export const getCampaign = (id: string) => api<Campaign>(`/api/campaigns/${id}`);
 export const createCampaign = (data: CreateCampaignInput) =>
   api('/api/campaigns', { method: 'POST', body: JSON.stringify(data) });
-// TODO: Add updateCampaign and deleteCampaign functions
+export const updateCampaign = (id: string, data: UpdateCampaignInput) =>
+  api<Campaign>(`/api/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteCampaign = (id: string) =>
+  api<void>(`/api/campaigns/${id}`, { method: 'DELETE' });
 
 // Ad Slots
 export const getAdSlots = (publisherId?: string) =>
@@ -66,7 +123,10 @@ export const getAdSlots = (publisherId?: string) =>
 export const getAdSlot = (id: string) => api<AdSlot>(`/api/ad-slots/${id}`);
 export const createAdSlot = (data: CreateAdSlotInput) =>
   api('/api/ad-slots', { method: 'POST', body: JSON.stringify(data) });
-// TODO: Add updateAdSlot, deleteAdSlot functions
+export const updateAdSlot = (id: string, data: UpdateAdSlotInput) =>
+  api<AdSlot>(`/api/ad-slots/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const deleteAdSlot = (id: string) =>
+  api<void>(`/api/ad-slots/${id}`, { method: 'DELETE' });
 
 // Placements
 export const getPlacements = () => api<Placement[]>('/api/placements');
